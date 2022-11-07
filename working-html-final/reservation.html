@@ -1,5 +1,4 @@
-{{define "base"}}
-   <!doctype html>
+<!doctype html>
 <html lang="en">
 
 <head>
@@ -15,13 +14,28 @@
           href="https://cdn.jsdelivr.net/npm/vanillajs-datepicker@1.1.2/dist/css/datepicker-bs4.min.css">
     <link rel="stylesheet" type="text/css" href="https://unpkg.com/notie/dist/notie.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@10.15.5/dist/sweetalert2.min.css">
-    <link rel="stylesheet" type="text/css" href="/static/css/styles.css">
+    <link rel="stylesheet" type="text/css" href="static/css/styles.css">
 
     <style>
-      
+        .btn-outline-secondary {
+            color: aqua;
+            border-color: #6c757d;
+        }
 
-        #reservation-dates{
-            z-index:10000;
+        p {
+
+        }
+
+        .paraClass {
+            font-size: 3em;
+        }
+
+        .secondClass {
+            color: red;
+        }
+
+        #lastPara {
+            text-decoration: underline;
         }
     </style>
 
@@ -38,10 +52,10 @@
     <div class="collapse navbar-collapse" id="navbarNav">
         <ul class="navbar-nav">
             <li class="nav-item active">
-                <a class="nav-link" href="/">Home <span class="sr-only">(current)</span></a>
+                <a class="nav-link" href="index.html">Home <span class="sr-only">(current)</span></a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="/about">About</a>
+                <a class="nav-link" href="about.html">About</a>
             </li>
             <li class="nav-item dropdown">
                 <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" role="button"
@@ -49,15 +63,15 @@
                     Rooms
                 </a>
                 <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
-                    <a class="dropdown-item" href="/generals-quaters">General's Quarters</a>
-                    <a class="dropdown-item" href="/majors-suite">Major's Suite</a>
+                    <a class="dropdown-item" href="generals.html">General's Quarters</a>
+                    <a class="dropdown-item" href="majors.html">Major's Suite</a>
                 </div>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="/make-reservation">Book Now</a>
+                <a class="nav-link" href="reservation.html">Book Now</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="/contact">Contact</a>
+                <a class="nav-link" href="contact.html">Contact</a>
             </li>
 
         </ul>
@@ -65,12 +79,39 @@
 </nav>
 
 
-    {{block "content" .}}
+<div class="container">
+    <div class="row">
+        <div class="col-md-3"></div>
+        <div class="col-md-6">
+            <h1 class="mt-3">Search for Availability</h1>
 
-    {{end}}
+            <form action="reservation.html" method="post" novalidate class="needs-validation">
+                <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+                <div class="row">
+                    <div class="col">
+                        <div class="row" id="reservation-dates">
+                            <div class="col-md-6">
+                                <input required class="form-control" type="text" name="start" placeholder="Arrival">
+                            </div>
+                            <div class="col-md-6">
+                                <input required class="form-control" type="text" name="end" placeholder="Departure">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <hr>
+
+                <button type="submit" class="btn btn-primary">Search Availability</button>
+
+            </form>
+        </div>
+        <div class="col-md-3"></div>
+    </div>
+
+</div>
 
 
-    
 <footer class="my-footer">
     <div class="row">
         <div class="col">
@@ -97,16 +138,7 @@
 <script src="https://unpkg.com/notie"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10.15.5/dist/sweetalert2.min.js"></script>
 
-
-{{block "js" .}}
-
-{{end}}
-
-
-
-<script> 
-
-    
+<script>
     let attention = Prompt();
 
     (function () {
@@ -127,9 +159,35 @@
         }, false);
     })();
 
+    document.getElementById("colorButton").addEventListener("click", function () {
+        let html = `
+        <form id="check-availability-form" action="" method="post" novalidate class="needs-validation">
+            <div class="form-row">
+                <div class="col">
+                    <div class="form-row" id="reservation-dates-modal">
+                        <div class="col">
+                            <input disabled required class="form-control" type="text" name="start" id="start" placeholder="Arrival">
+                        </div>
+                        <div class="col">
+                            <input disabled required class="form-control" type="text" name="end" id="end" placeholder="Departure">
+                        </div>
 
+                    </div>
+                </div>
+            </div>
+        </form>
+        `;
+        attention.custom({
+            title: 'Choose your dates',
+            msg: html,
+        });
+    })
 
-  
+    const elem = document.getElementById('reservation-dates');
+    const rangePicker = new DateRangePicker(elem, {
+        format: "yyyy-mm-dd",
+    });
+
     function notify(msg, msgType) {
         notie.alert({
             type: msgType,
@@ -210,21 +268,22 @@
                 title = "",
             } = c;
 
-            const { value: result } = await Swal.fire({
+            const { value: formValues } = await Swal.fire({
                 title: title,
                 html: msg,
                 backdrop: false,
                 focusConfirm: false,
                 showCancelButton: true,
                 willOpen: () => {
-                   if(c.willOpen !== undefined){
-                        c.willOpen();
-                   }
+                    const elem = document.getElementById("reservation-dates-modal");
+                    const rp = new DateRangePicker(elem, {
+                        format: 'yyyy-mm-dd',
+                        showOnFocus: true,
+                    })
                 },
                 didOpen: () => {
-                    if(c.didOpen !== undefined){
-                        c.didOpen()
-                    }
+                    document.getElementById("start").removeAttribute("disabled");
+                    document.getElementById("end").removeAttribute("disabled");
                 },
                 preConfirm: () => {
                     return [
@@ -233,32 +292,10 @@
                     ]
                 }
             })
-            // check there is any result AND they've not click the cancel button
-            // on the prompt window AND the result is not exactly equal to empty string.
-            if(result){
-                // if they didn't hit the cancel button, 
-                // then check to see if we have any actual values.
-                if(result.dismiss !== Swal.DismissReason.cancel){
-                    //check the result is not empty string
-                    if(result.value !== ""){
-                        if(c.callback !== undefined){
-                            c.callback(result);
-                        }
-                    }else{
-                        c.callback(false);
-                    }
-                }else{
-                    c.callback(false);
-                }
 
-            }
-
-
-            /*
             if (formValues) {
                 Swal.fire(JSON.stringify(formValues))
             }
-            */
         }
 
         return {
@@ -271,9 +308,6 @@
 
 </script>
 
-
-
 </body>
 
 </html>
-{{end}}
