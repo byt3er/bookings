@@ -1,0 +1,18 @@
+mode: set
+github.com/byt3er/bookings/internals/forms/errors.go:7.44,9.2 1 1
+github.com/byt3er/bookings/internals/forms/errors.go:12.42,14.18 2 1
+github.com/byt3er/bookings/internals/forms/errors.go:17.2,17.14 1 1
+github.com/byt3er/bookings/internals/forms/errors.go:14.18,16.3 1 1
+github.com/byt3er/bookings/internals/forms/forms.go:18.29,20.2 1 1
+github.com/byt3er/bookings/internals/forms/forms.go:23.33,28.2 1 1
+github.com/byt3er/bookings/internals/forms/forms.go:31.39,34.13 2 1
+github.com/byt3er/bookings/internals/forms/forms.go:37.2,37.13 1 1
+github.com/byt3er/bookings/internals/forms/forms.go:34.13,36.3 1 1
+github.com/byt3er/bookings/internals/forms/forms.go:41.43,42.31 1 1
+github.com/byt3er/bookings/internals/forms/forms.go:42.31,44.37 2 1
+github.com/byt3er/bookings/internals/forms/forms.go:44.37,46.4 1 1
+github.com/byt3er/bookings/internals/forms/forms.go:51.52,53.21 2 1
+github.com/byt3er/bookings/internals/forms/forms.go:53.21,55.3 1 1
+github.com/byt3er/bookings/internals/forms/forms.go:59.43,60.40 1 1
+github.com/byt3er/bookings/internals/forms/forms.go:64.2,64.13 1 1
+github.com/byt3er/bookings/internals/forms/forms.go:60.40,63.3 2 1
