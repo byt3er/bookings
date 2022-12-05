@@ -11,7 +11,7 @@ func TestForm_valid(t *testing.T) {
 	isValid := form.Valid()
 
 	if !isValid {
-		t.Error("get invalid when should have been valid")
+		t.Error("got invalid when should have been valid")
 	}
 }
 

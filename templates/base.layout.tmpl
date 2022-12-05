@@ -59,6 +59,9 @@
             <li class="nav-item">
                 <a class="nav-link" href="/contact">Contact</a>
             </li>
+             <li class="nav-item">
+                <a class="nav-link" href="/user/login">Login</a>
+            </li>
 
         </ul>
     </div>
@@ -96,7 +99,7 @@
 <script src="https://cdn.jsdelivr.net/npm/vanillajs-datepicker@1.1.2/dist/js/datepicker-full.min.js"></script>
 <script src="https://unpkg.com/notie"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10.15.5/dist/sweetalert2.min.js"></script>
-
+<script src="/static/js/app.js"></script>
 
 {{block "js" .}}
 
@@ -157,128 +160,7 @@
         notify("{{.}}","warning")
     {{end}}
 
-    function Prompt() {
-        let toast = function (c) {
-            const{
-                msg = '',
-                icon = 'success',
-                position = 'top-end',
-
-            } = c;
-
-            const Toast = Swal.mixin({
-                toast: true,
-                title: msg,
-                position: position,
-                icon: icon,
-                showConfirmButton: false,
-                timer: 3000,
-                timerProgressBar: true,
-                didOpen: (toast) => {
-                    toast.addEventListener('mouseenter', Swal.stopTimer)
-                    toast.addEventListener('mouseleave', Swal.resumeTimer)
-                }
-            })
-
-            Toast.fire({})
-        }
-
-        let success = function (c) {
-            const {
-                msg = "",
-                title = "",
-                footer = "",
-            } = c
-
-            Swal.fire({
-                icon: 'success',
-                title: title,
-                text: msg,
-                footer: footer,
-            })
-
-        }
-
-        let error = function (c) {
-            const {
-                msg = "",
-                title = "",
-                footer = "",
-            } = c
-
-            Swal.fire({
-                icon: 'error',
-                title: title,
-                text: msg,
-                footer: footer,
-            })
-
-        }
-
-        async function custom(c) {
-            const {
-                msg = "",
-                title = "",
-            } = c;
-
-            const { value: result } = await Swal.fire({
-                title: title,
-                html: msg,
-                backdrop: false,
-                focusConfirm: false,
-                showCancelButton: true,
-                willOpen: () => {
-                   if(c.willOpen !== undefined){
-                        c.willOpen();
-                   }
-                },
-                didOpen: () => {
-                    if(c.didOpen !== undefined){
-                        c.didOpen()
-                    }
-                },
-                preConfirm: () => {
-                    return [
-                        document.getElementById('start').value,
-                        document.getElementById('end').value
-                    ]
-                }
-            })
-            // check there is any result AND they've not click the cancel button
-            // on the prompt window AND the result is not exactly equal to empty string.
-            if(result){
-                // if they didn't hit the cancel button, 
-                // then check to see if we have any actual values.
-                if(result.dismiss !== Swal.DismissReason.cancel){
-                    //check the result is not empty string
-                    if(result.value !== ""){
-                        if(c.callback !== undefined){
-                            c.callback(result);
-                        }
-                    }else{
-                        c.callback(false);
-                    }
-                }else{
-                    c.callback(false);
-                }
-
-            }
-
-
-            /*
-            if (formValues) {
-                Swal.fire(JSON.stringify(formValues))
-            }
-            */
-        }
-
-        return {
-            toast: toast,
-            success: success,
-            error: error,
-            custom: custom,
-        }
-    }
+    
 
 </script>
 
