@@ -42,6 +42,23 @@ func routes(app *config.AppConfig) http.Handler {
 
 	mux.Get("/user/login", handlers.Repo.ShowLogin)
 	mux.Post("/user/login", handlers.Repo.PostShowLogin)
+	mux.Get("/user/logout", handlers.Repo.Logout)
 
+	// need to set a pattern "/admin"
+	// anything that starts with admin will be handled by this function(mux.Route function)
+	// on the mux router
+	mux.Route("/admin", func(mux chi.Router) {
+		// we're going to use Auth middleware to only apply to things
+		// that are inside thid mux.Route func
+		// mux.Use(Auth)
+
+		mux.Get("/dashboard", handlers.Repo.AdminDashboard)
+		mux.Get("/reservations-new", handlers.Repo.AdminNewReservations)
+		mux.Get("/reservations-all", handlers.Repo.AdminAllReservations)
+		mux.Get("/reservations-calendar", handlers.Repo.AdminReservationsCalender)
+
+		// src and id are matching parameters or matching parts of the route
+		mux.Get("/reservations/{src}/{id}", handlers.Repo.AdminShowReservation)
+	})
 	return mux
 }

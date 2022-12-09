@@ -261,7 +261,7 @@ func (m *postgresDBRepo) Authenticate(email, testPassword string) (int, string, 
 
 	// query to find if the user exsists
 	row := m.DB.QueryRowContext(ctx,
-		"select id, password form users where email =$1",
+		"select id, password from users where email =$1",
 		email,
 	)
 	err := row.Scan(&id, &hashedPassword)
@@ -279,4 +279,143 @@ func (m *postgresDBRepo) Authenticate(email, testPassword string) (int, string, 
 		return 0, "", err
 	}
 	return id, hashedPassword, nil
+}
+
+// AllReservation returns a slice of all reservations
+func (m *postgresDBRepo) AllReservation() ([]models.Reservation, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	var reservations []models.Reservation
+
+	query := `
+		select r.id, r.first_name, r.last_name, r.email, r.phone, r.start_date,
+			r.end_date, r.room_id, r.created_at, r.updated_at, 
+			rm.id, rm.room_name
+		from
+			reservations r left join rooms rm 
+		on (r.room_id = rm.id)
+		order by r.start_date asc
+	`
+	rows, err := m.DB.QueryContext(ctx, query)
+	if err != nil {
+		return reservations, err
+	}
+	defer rows.Close() // other wise gone have a memory leak
+
+	for rows.Next() {
+		var i models.Reservation
+		err := rows.Scan(
+			&i.ID,
+			&i.FirstName,
+			&i.LastName,
+			&i.Email,
+			&i.Phone,
+			&i.StartDate,
+			&i.EndDate,
+			&i.RoomID,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.Room.ID,
+			&i.Room.RoomName,
+		)
+		if err != nil {
+			return reservations, err
+		}
+		reservations = append(reservations, i)
+	}
+	if err := rows.Err(); err != nil {
+		return reservations, err
+	}
+	return reservations, nil
+}
+
+// NewReservation returns a slice of all reservations
+func (m *postgresDBRepo) AllNewReservation() ([]models.Reservation, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	var reservations []models.Reservation
+
+	query := `
+		select r.id, r.first_name, r.last_name, r.email, r.phone, r.start_date,
+			r.end_date, r.room_id, r.created_at, r.updated_at, r.processed,
+			rm.id, rm.room_name
+		from
+			reservations r left join rooms rm 
+		on (r.room_id = rm.id)
+		where r.processed = 0
+		order by r.start_date asc
+	`
+	rows, err := m.DB.QueryContext(ctx, query)
+	if err != nil {
+		return reservations, err
+	}
+	defer rows.Close() // other wise gone have a memory leak
+
+	for rows.Next() {
+		var i models.Reservation
+		err := rows.Scan(
+			&i.ID,
+			&i.FirstName,
+			&i.LastName,
+			&i.Email,
+			&i.Phone,
+			&i.StartDate,
+			&i.EndDate,
+			&i.RoomID,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.Processed,
+			&i.Room.ID,
+			&i.Room.RoomName,
+		)
+		if err != nil {
+			return reservations, err
+		}
+		reservations = append(reservations, i)
+	}
+	if err := rows.Err(); err != nil {
+		return reservations, err
+	}
+	return reservations, nil
+}
+
+// GetReservationByID returns on reservation by ID
+func (m *postgresDBRepo) GetReservationByID(id int) (models.Reservation, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	query := `
+		select r.id, r.first_name, r.last_name, r.email, r.phone, r.start_date,
+			r.end_date, r.room_id, r.created_at, r.updated_at, r.processed,
+			rm.id, rm.room_name
+		from
+			reservations r left join rooms rm 
+		on (r.room_id = rm.id)
+		where r.ID = $1
+	`
+	row := m.DB.QueryRowContext(ctx, query, id)
+
+	var r models.Reservation
+	err := row.Scan(
+		&r.ID,
+		&r.FirstName,
+		&r.LastName,
+		&r.Email,
+		&r.Phone,
+		&r.StartDate,
+		&r.EndDate,
+		&r.RoomID,
+		&r.CreatedAt,
+		&r.UpdatedAt,
+		&r.Processed,
+		&r.Room.ID,
+		&r.Room.RoomName,
+	)
+
+	if err != nil {
+		return r, err
+	}
+	return r, nil
 }

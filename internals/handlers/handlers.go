@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/byt3er/bookings/internals/config"
@@ -473,24 +474,110 @@ func (m *Repository) PostShowLogin(w http.ResponseWriter, r *http.Request) {
 
 	form := forms.New(r.PostForm)
 	form.Required("email", "password")
+	form.IsEmail("email")
 	if !form.Valid() {
-		// TODO - take user back to page
+		// Display the login page and pass the form object with errors
+		render.Template(w, r, "login.page.tmpl", &models.TemplateData{
+			Form: form,
+		})
+		return
 	}
-
 	email := r.Form.Get("email")
 	password := r.Form.Get("password")
 	// Authenticate the user
 	id, _, err := m.DB.Authenticate(email, password)
 	if err != nil {
 		log.Println(err)
-		m.App.Session.Put(r.Context(), "error", "Invalid login credentials")
+		m.App.Session.Put(r.Context(), "flash", "Invalid login credentials")
 		http.Redirect(w, r, "/user/login", http.StatusSeeOther)
 		return
 	}
 
 	// store the id in the session
 	m.App.Session.Put(r.Context(), "user_id", id)
-	m.App.Session.Put(r.Context(), "sucess", "Logged in successfully")
+	m.App.Session.Put(r.Context(), "flash", "Logged in successfully")
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 
+}
+
+// Logout logs a user out
+func (m *Repository) Logout(w http.ResponseWriter, r *http.Request) {
+	_ = m.App.Session.Destroy(r.Context())
+	// Always good practice to renew the session token
+	_ = m.App.Session.RenewToken(r.Context())
+
+	http.Redirect(w, r, "/user/login", http.StatusSeeOther)
+}
+
+func (m *Repository) AdminDashboard(w http.ResponseWriter, r *http.Request) {
+	render.Template(w, r, "admin-dashboard.page.tmpl", &models.TemplateData{})
+}
+
+// AdminAllReservations show all reservations in admin tool
+func (m *Repository) AdminAllReservations(w http.ResponseWriter, r *http.Request) {
+	reservations, err := m.DB.AllReservation()
+	if err != nil {
+		helpers.ServerError(w, err)
+		return
+	}
+
+	data := make(map[string]interface{})
+	data["reservations"] = reservations
+
+	render.Template(w, r, "admin-all-reservations.page.tmpl", &models.TemplateData{
+		Data: data,
+	})
+}
+
+// AdminNewReservations shows all new reservations in admin tool
+func (m *Repository) AdminNewReservations(w http.ResponseWriter, r *http.Request) {
+	reservations, err := m.DB.AllNewReservation()
+	if err != nil {
+		helpers.ServerError(w, err)
+		return
+	}
+
+	data := make(map[string]interface{})
+	data["reservations"] = reservations
+
+	render.Template(w, r, "admin-new-reservations.page.tmpl", &models.TemplateData{
+		Data: data,
+	})
+}
+
+// AdminShowReservation shows the reservation in the admin tool
+func (m *Repository) AdminShowReservation(w http.ResponseWriter, r *http.Request) {
+	// explode and split the request URI
+	// slice start form 1 not 0
+	exploded := strings.Split(r.RequestURI, "/")
+	id, err := strconv.Atoi(exploded[4])
+	if err != nil {
+		helpers.ServerError(w, err)
+		return
+	}
+
+	src := exploded[3]
+	stringMap := make(map[string]string)
+	stringMap["src"] = src
+
+	// get reservation from the database
+	res, err := m.DB.GetReservationByID(id)
+	if err != nil {
+		helpers.ServerError(w, err)
+		return
+	}
+
+	data := make(map[string]interface{})
+	data["reservation"] = res
+
+	render.Template(w, r, "admin-reservations-show.page.tmpl", &models.TemplateData{
+		StringMap: stringMap,
+		Data:      data,
+		Form: forms.New(nil)
+	})
+}
+
+//AdminReservationsCalendar displays the reservation calendar
+func (m *Repository) AdminReservationsCalender(w http.ResponseWriter, r *http.Request) {
+	render.Template(w, r, "admin-reservations-calendar.page.tmpl", &models.TemplateData{})
 }

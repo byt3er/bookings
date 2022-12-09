@@ -96,3 +96,15 @@ func (m *testDBRepo) Authenticate(email, testPassword string) (int, string, erro
 
 	return id, hashedPassword, nil
 }
+func (m *testDBRepo) AllReservation() ([]models.Reservation, error) {
+	var reservations []models.Reservation
+	return reservations, nil
+}
+func (m *testDBRepo) AllNewReservation() ([]models.Reservation, error) {
+	var reservations []models.Reservation
+	return reservations, nil
+}
+func (m *testDBRepo) GetReservationByID(id int) (models.Reservation, error) {
+	var r models.Reservation
+	return r, nil
+}
