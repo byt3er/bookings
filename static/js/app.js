@@ -82,12 +82,7 @@ function Prompt() {
                     c.didOpen()
                 }
             },
-            preConfirm: () => {
-                return [
-                    document.getElementById('start').value,
-                    document.getElementById('end').value
-                ]
-            }
+            
         })
         // check there is any result AND they've not click the cancel button
         // on the prompt window AND the result is not exactly equal to empty string.

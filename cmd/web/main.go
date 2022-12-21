@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/gob"
+	"flag"
 	"fmt"
 	"log"
 	"net/http"
@@ -66,13 +67,33 @@ func run() (*driver.DB, error) {
 	gob.Register(models.Room{})
 	gob.Register(models.Restriction{})
 
+	// read flags
+	inProduction := flag.Bool("production", true, "Application is in production")
+	useCache := flag.Bool("cache", true, "Use template cache")
+	dbHost := flag.String("dbhost", "localhost", "Database host")
+	dbName := flag.String("dbname", "", "Database name")
+	dbUser := flag.String("dbuser", "", "Database user")
+	dbPass := flag.String("dbpass", "", "Database password")
+	dbPort := flag.String("dbport", "5432", "Database port")
+	dbSSL := flag.String("dbssl", "disable", "Database ssl settings (disable, prefer, require")
+
+	flag.Parse()
+	if *dbName == "" || *dbUser == "" {
+		fmt.Println("Missing requied flag to start the application")
+		// stop the application
+		os.Exit(1)
+	}
+
+	// for the blockMap in the admin/reservation-calendar
+	gob.Register(map[string]int{})
+
 	// create a channel
 	mailChain := make(chan models.MailData)
 	// make is avaiable to every part of the application
 	app.MailChan = mailChain
 
 	// change this to true when in production
-	app.InProduction = false
+	app.InProduction = *inProduction
 
 	infoLog = log.New(os.Stdout, "INFO\t", log.Ldate|log.Ltime) // print on the terminal window
 	app.InfoLog = infoLog
@@ -91,7 +112,16 @@ func run() (*driver.DB, error) {
 	//====================================================
 	// connect to the database
 	log.Println("Connecting to database....")
-	db, err := driver.ConnectSQL("host=localhost port=5432 dbname=bookings user=postgres password=manoj")
+	connectionString := fmt.Sprintf("host=%s port=%s dbname=%s user=%s password=%s sslmode=%s",
+		*dbHost,
+		*dbPort,
+		*dbName,
+		*dbUser,
+		*dbPass,
+		*dbSSL,
+	)
+	//"host=localhost port=5432 dbname=bookings user=postgres password=manoj"
+	db, err := driver.ConnectSQL(connectionString)
 	if err != nil {
 		log.Fatal("Cannot connect to the database! Dying...")
 	}
@@ -101,12 +131,12 @@ func run() (*driver.DB, error) {
 
 	tc, err := render.CreateTemplateCache()
 	if err != nil {
-		log.Fatal("cannot create template cache")
+		log.Fatal("cannot create template cache", err)
 		return nil, err
 	}
 
 	app.TemplateCache = tc
-	app.UseCache = false
+	app.UseCache = *useCache
 
 	repo := handlers.NewRepo(&app, db)
 	handlers.NewHandlers(repo)

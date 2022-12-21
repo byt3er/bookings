@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"path/filepath"
+	"strconv"
 	"time"
 
 	"github.com/byt3er/bookings/internals/config"
@@ -16,7 +17,11 @@ import (
 )
 
 var functions = template.FuncMap{
-	"humanDate": HumanDate,
+	"humanDate":  HumanDate,
+	"formatDate": FormatDate,
+	"iterate":    Iterate,
+	"add":        Add,
+	"adds":       AddS,
 }
 
 var app *config.AppConfig
@@ -26,10 +31,36 @@ var pathToTemplates = "./templates"
 func NewRenderer(a *config.AppConfig) {
 	app = a
 }
+func Add(a, b int) int {
+	return a + b
+}
+
+func AddS(a, b int) string {
+	sum := a + b
+	str := strconv.Itoa(sum)
+	if sum < 10 {
+		return "0" + str
+	}
+	return str
+}
+
+// Iterate returns a slice of ints, starting at 1, going to count
+func Iterate(count int) []int {
+	var i int
+	var items []int
+	for i = 0; i < count; i++ {
+		items = append(items, i)
+	}
+	return items
+}
 
 // HumanDate returns time in YYYY-MM-DD format(to be used in template)
 func HumanDate(t time.Time) string {
 	return t.Format("2006-01-02")
+}
+
+func FormatDate(t time.Time, f string) string {
+	return t.Format(f)
 }
 
 // AddDefaultData adds data for all templates
